@@ -1,123 +1,97 @@
 import React, { useState, useEffect } from "react";
-import { Text, View, TouchableOpacity, StyleSheet, Image } from "react-native";
-import { Camera } from "expo-camera";
-import * as MediaLibrary from "expo-media-library";
-import { MaterialIcons } from '@expo/vector-icons';
-import { AntDesign } from '@expo/vector-icons';
+import { TextInput, Button, View, StyleSheet } from "react-native";
+import uuid from 'react-native-uuid';
+import * as Location from "expo-location";
 
+import Camera from "../companents/Camera";
+import PhotoPreview from "../companents/PhotoPreview";
 
-const CreatePostsScreen = () => {
-    const [hasPermission, setHasPermission] = useState(null);
-    const [cameraRef, setCameraRef] = useState(null);
-    const [type, setType] = useState(Camera.Constants.Type.back);
+export default function CreatePostsScreen({ navigation }) {
+
+    const [photo, setPhoto] = useState(null);
+    const [title, setTitle] = useState('');
+    const [place, setPlace] = useState('');
 
     useEffect(() => {
         (async () => {
-            const { status } = await Camera.requestCameraPermissionsAsync();
-            await MediaLibrary.requestPermissionsAsync();
-            setHasPermission(status === "granted");
+            let { status } = await Location.requestForegroundPermissionsAsync();
+            if (status !== "granted") {
+                console.log("Permission to access location was denied");
+            }
         })();
     }, []);
 
-    if (hasPermission === null) {
-        return <View />;
+    const formReset = () => {
+        setPhoto(null);
+        setTitle('');
+        setPlace('');
     }
 
-    if (hasPermission === false) {
-        return <Text>No access to camera</Text>;
+    const handleAddNewPost = async () => {
+        const location = await Location.getCurrentPositionAsync({
+            accuracy: Location.Accuracy.Highest,
+            maximumAge: 10000
+        });
+        const newPost = {
+            id: uuid.v1(),
+            photo,
+            title,
+            place,
+            location: {
+                latitude: location.coords.latitude,
+                longitude: location.coords.longitude,
+            },
+            comments: []
+        }
+        navigation.navigate("DefaultScreen", newPost);
+        formReset();
     }
 
-    return(
-        <View>
-            <Camera
-                style={styles.camera}
-                type={type}
-                pictureSize="1280x960"
-                ref={setCameraRef}
-            >
-                <View style={styles.photoView}>
-                    <TouchableOpacity
-                        style={styles.flipBtn}
-                        onPress={() => {
-                            setType(
-                                type === Camera.Constants.Type.back
-                                    ? Camera.Constants.Type.front
-                                    : Camera.Constants.Type.back
-                            );
-                        }}
-                    >
-                        <MaterialIcons name={'flip-camera-android'} size={50} color={'white'} />
-                    </TouchableOpacity >
-                    <TouchableOpacity
-                        style={styles.captureBtn}
-                        onPress={async () => {
-                            if (cameraRef) {
-                                const photo = await cameraRef.takePictureAsync();
-                                onCapture(photo.uri);
-                            }
-                        }}
-                    >
-                        <MaterialIcons name={'camera'} size={50} color={'white'} />
-                    </TouchableOpacity>
-                </View >
-            </Camera >
-            <Image
-                style={styles.image}
-                source={{
-                    uri: photo,
-                }} />
-            <TouchableOpacity
-                style={styles.cancelBtn}
-                onPress={onCancel}
-            >
-                <AntDesign
-                    name={'closecircleo'}
-                    size={50}
-                    color={'white'}
-                />
-            </TouchableOpacity >
-        </View>
-    );
+    return (
+        <View style={styles.container}>
+            <View style={styles.photoContainer}>
+                {photo
+                    ? <PhotoPreview photo={photo} onCancel={() => setPhoto(null)} />
+                    : <Camera onCapture={setPhoto} />
+                }
+            </View>
+            <TextInput
+                value={title}
+                onChangeText={setTitle}
+                style={styles.input}
+                placeholder="Name"
+            /><TextInput
+                value={place}
+                onChangeText={setPlace}
+                style={styles.input}
+                placeholder="Location"
+            /><Button
+                title='Post'
+                onPress={handleAddNewPost}
+                color="#FF6C00"
+            />
+        </View >
+    )
 }
 
 const styles = StyleSheet.create({
-    camera: {
-        width: '100%',
-        height: '100%',
-        borderRadius: 5,
-    },
-    photoView: {
+    container: {
         flex: 1,
-        backgroundColor: "transparent",
-        justifyContent: "flex-end",
-        padding: 20,
+        paddingHorizontal: 20,
     },
-    flipBtn: {
-        position: "absolute",
-        bottom: 20,
-        right: 20,
-        backgroundColor: '#0005',
-        padding: 5,
-        borderRadius: 50,
-    },
-    captureBtn: {
-        alignSelf: "center",
-        backgroundColor: '#0005',
-        padding: 5,
-        borderRadius: 50,
-    },
-    image: {
+    photoContainer: {
+        marginTop: 10,
+        marginBottom: 20,
         width: '100%',
-        height: '100%',
-        borderRadius: 5,
+        aspectRatio: 3 / 4,
     },
-    cancelBtn: {
-        backgroundColor: '#0005',
-        padding: 5,
-        borderRadius: 50,
-        position: "absolute",
-        bottom: 20,
-        right: 20,
+    input: {
+        height: 40,
+        width: '100%',
+        backgroundColor: 'white',
+        borderWidth: 1,
+        borderRadius: 5,
+        padding: 10,
+        marginBottom: 20,
     },
 });
-export default CreatePostsScreen;
