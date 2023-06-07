@@ -63,31 +63,40 @@ const CameraPreview = ({ onCapture }) => {
 }
 
 const styles = StyleSheet.create({
-    camera: {
-        width: '100%',
-        height: '100%',
-        borderRadius: 5,
-    },
+    container: { flex: 1 },
+    camera: { flex: 1 },
     photoView: {
-        flex: 1,
-        backgroundColor: "transparent",
-        justifyContent: "flex-end",
-        padding: 20,
+      flex: 1,
+      backgroundColor: "transparent",
+      justifyContent: "flex-end",
     },
-    flipBtn: {
-        position: "absolute",
-        bottom: 20,
-        right: 20,
-        backgroundColor: '#0005',
-        padding: 5,
-        borderRadius: 50,
+  
+    flipContainer: {
+      flex: 0.1,
+      alignItems: "flex-end",
+      justifyContent: "space-around",
     },
-    captureBtn: {
-        alignSelf: "center",
-        backgroundColor: '#0005',
-        padding: 5,
-        borderRadius: 50,
+  
+    button: { alignSelf: "center" },
+  
+    takePhotoOut: {
+      borderWidth: 2,
+      borderColor: "white",
+      height: 50,
+      width: 50,
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      borderRadius: 50,
+    },
+  
+    takePhotoInner: {
+      borderWidth: 2,
+      borderColor: "white",
+      height: 40,
+      width: 40,
+      backgroundColor: "white",
+      borderRadius: 50,
     },
 });
-
 export default CameraPreview;

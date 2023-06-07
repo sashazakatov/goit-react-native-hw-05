@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { TextInput, Button, View, StyleSheet } from "react-native";
+import { TextInput, Button, View, StyleSheet, Keyboard, KeyboardAvoidingView } from "react-native";
 import uuid from 'react-native-uuid';
 import * as Location from "expo-location";
 
@@ -8,6 +8,7 @@ import PhotoPreview from "../companents/PhotoPreview";
 
 export default function CreatePostsScreen({ navigation }) {
 
+    const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
     const [photo, setPhoto] = useState(null);
     const [title, setTitle] = useState('');
     const [place, setPlace] = useState('');
@@ -19,6 +20,19 @@ export default function CreatePostsScreen({ navigation }) {
                 console.log("Permission to access location was denied");
             }
         })();
+
+        const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => {
+            setIsKeyboardOpen(true);
+        });
+        
+        const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
+            setIsKeyboardOpen(false);
+        });
+        
+        return () => {
+            keyboardDidShowListener.remove();
+            keyboardDidHideListener.remove();
+        };
     }, []);
 
     const formReset = () => {
@@ -48,7 +62,7 @@ export default function CreatePostsScreen({ navigation }) {
     }
 
     return (
-        <View style={styles.container}>
+        <KeyboardAvoidingView style={styles.container} behavior="padding">
             <View style={styles.photoContainer}>
                 {photo
                     ? <PhotoPreview photo={photo} onCancel={() => setPhoto(null)} />
@@ -60,17 +74,22 @@ export default function CreatePostsScreen({ navigation }) {
                 onChangeText={setTitle}
                 style={styles.input}
                 placeholder="Name"
-            /><TextInput
+            />
+            <TextInput
                 value={place}
                 onChangeText={setPlace}
                 style={styles.input}
                 placeholder="Location"
-            /><Button
-                title='Post'
-                onPress={handleAddNewPost}
-                color="#FF6C00"
             />
-        </View >
+            { !isKeyboardOpen && (
+                <Button
+                    title='Post'
+                    onPress={handleAddNewPost}
+                    color="#FF6C00"
+                    style={{ width: "343px", borderRadius: 5, }}
+                />
+            )}
+        </KeyboardAvoidingView>
     )
 }
 
@@ -83,7 +102,7 @@ const styles = StyleSheet.create({
         marginTop: 10,
         marginBottom: 20,
         width: '100%',
-        aspectRatio: 3 / 4,
+        aspectRatio: 1,
     },
     input: {
         height: 40,

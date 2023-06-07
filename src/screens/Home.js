@@ -7,10 +7,35 @@ import ProfileScreen from "./ProfileScreen"
 import { SimpleLineIcons, Octicons, MaterialIcons } from '@expo/vector-icons'; 
 import { Button } from "react-native";
 import Logout from "../companents/Logout";
+import React, { useState, useEffect } from "react";
+import { Keyboard } from "react-native";
 
 const Tabs  = createBottomTabNavigator();
 
 const Home = () =>{
+    const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
+
+    useEffect(() => {
+        const keyboardDidShowListener = Keyboard.addListener(
+          "keyboardDidShow",
+          () => {
+            setIsKeyboardOpen(true);
+          }
+        );
+    
+        const keyboardDidHideListener = Keyboard.addListener(
+          "keyboardDidHide",
+          () => {
+            setIsKeyboardOpen(false);
+          }
+        );
+    
+        return () => {
+          keyboardDidShowListener.remove();
+          keyboardDidHideListener.remove();
+        };
+      }, []);    
+
     return(
         <Tabs.Navigator
             initialRouteName="PostsScreen"
@@ -25,35 +50,22 @@ const Home = () =>{
                             return <Octicons name="person" size={size} color={color}/>
                     }
                 },
-                tabBarActiveTintColor: "#FFFFFF",
-                tabBarActiveBackgroundColor: "#FF6C00",
-                tabBarInactiveTintColor: "#212121CC",
-                tabBarShowLabel: false,
-                headerTitleAlign: "center",
-                tabBarItemStyle: {
-                    width:70,
-                    height: 40,
-                    borderRadius: 20,
-                },
-                tabBarStyle:[{
-                    display: "flex",    
-                    paddingTop: 22,
-                    paddingBottom: 22,
-                    paddingLeft: 40,
-                    paddingRight: 44, 
-                    height: 83,
-                }],
-              })}
+                tabBarActiveTintColor: "#e4dfda",
+                    tabBarActiveBackgroundColor: "#FF6C00",
+                    tabBarShowLabel: false,
+                    tabBarItemStyle: {
+                        borderRadius: 30,
+                        marginVertical: 5,
+                        marginHorizontal: 25,
+                    },
+                tabBarStyle: { height: 60 },
+                tabBarVisible: !isKeyboardOpen,
+            })}
         >
             <Tabs.Screen
                 name='PostsScreen' 
                 component={PostsScreen}
-                options={{
-                    title: "Публікації",
-                    headerRight: ()=>{
-                        return <Logout />;
-                    },
-                }}
+                options={{ headerShown: false }} 
             />
             <Tabs.Screen 
                 name='CreatePostsScreen' 
